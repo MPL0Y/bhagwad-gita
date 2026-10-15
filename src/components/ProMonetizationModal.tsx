@@ -12,9 +12,13 @@ import {
   BookOpen, 
   Volume2, 
   Smartphone, 
-  FileText 
+  FileText,
+  CreditCard,
+  QrCode,
+  ExternalLink
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { Currency, TIER_PRICING, initiatePayment } from '../services/payment';
 
 interface ProMonetizationModalProps {
   isOpen: boolean;
@@ -29,6 +33,7 @@ export const ProMonetizationModal: React.FC<ProMonetizationModalProps> = ({
   sadhana,
   onUpgradeSuccess
 }) => {
+  const [currency, setCurrency] = useState<Currency>('INR');
   const [selectedTier, setSelectedTier] = useState<'seeker' | 'sadhak' | 'patron'>('sadhak');
   const [couponCode, setCouponCode] = useState<string>('');
   const [discountPercent, setDiscountPercent] = useState<number>(0);
@@ -54,29 +59,39 @@ export const ProMonetizationModal: React.FC<ProMonetizationModalProps> = ({
   };
 
   const getTierPrice = (tier: 'seeker' | 'sadhak' | 'patron') => {
-    let base = 49;
-    if (tier === 'seeker') base = 9;
-    if (tier === 'patron') base = 149;
-
+    const tierInfo = TIER_PRICING[currency][tier];
+    let base = tierInfo.amount;
     if (discountPercent > 0) {
-      return Math.round(base * (1 - discountPercent / 100));
+      base = Math.round(base * (1 - discountPercent / 100));
     }
-    return base;
+    return `${tierInfo.currencySymbol}${base}`;
   };
 
-  const handleCheckout = () => {
+  const handlePayment = async () => {
     setIsProcessing(true);
-    setTimeout(() => {
+    try {
+      await initiatePayment(
+        selectedTier,
+        currency,
+        discountPercent,
+        (paymentId) => {
+          setIsProcessing(false);
+          confetti({
+            particleCount: 140,
+            spread: 85,
+            origin: { y: 0.6 },
+            colors: ['#D97706', '#F59E0B', '#EA580C', '#10B981']
+          });
+          onUpgradeSuccess(selectedTier);
+        },
+        (error) => {
+          setIsProcessing(false);
+          setCouponError(error || 'Payment was not completed');
+        }
+      );
+    } catch (e) {
       setIsProcessing(false);
-      // Trigger joyous celebratory confetti
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ['#D97706', '#F59E0B', '#EA580C', '#10B981']
-      });
-      onUpgradeSuccess(selectedTier);
-    }, 800);
+    }
   };
 
   const handleActivateLicense = () => {
@@ -111,10 +126,10 @@ export const ProMonetizationModal: React.FC<ProMonetizationModalProps> = ({
             </div>
             <div>
               <h2 className="text-xl sm:text-2xl font-bold font-devanagari text-amber-900 dark:text-amber-200 flex items-center gap-2">
-                <span>गीता साधना प्रो · Become a Sacred Patron</span>
+                <span>गीता साधना प्रो · Sacred Patronage</span>
               </h2>
               <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400">
-                Support sacred preservation & unlock unlimited Vedic wisdom tools
+                Direct support for sacred wisdom preservation with instant UPI & Global Cards
               </p>
             </div>
           </div>
@@ -124,6 +139,37 @@ export const ProMonetizationModal: React.FC<ProMonetizationModalProps> = ({
           >
             <X className="w-5 h-5 text-stone-500" />
           </button>
+        </div>
+
+        {/* Currency Switcher Pill */}
+        <div className="px-5 pt-4 flex items-center justify-between border-b pb-3"
+          style={{ borderColor: 'var(--border-parchment)' }}
+        >
+          <span className="text-xs font-semibold text-stone-500">
+            Choose your preferred payment method:
+          </span>
+          <div className="inline-flex p-1 rounded-full bg-stone-500/10 border border-stone-300/40 dark:border-stone-700/50">
+            <button
+              onClick={() => setCurrency('INR')}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                currency === 'INR'
+                  ? 'bg-amber-500 text-white shadow-sm'
+                  : 'text-stone-600 dark:text-stone-300 hover:text-amber-600'
+              }`}
+            >
+              🇮🇳 ₹ INR (UPI / Cards)
+            </button>
+            <button
+              onClick={() => setCurrency('USD')}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                currency === 'USD'
+                  ? 'bg-amber-500 text-white shadow-sm'
+                  : 'text-stone-600 dark:text-stone-300 hover:text-amber-600'
+              }`}
+            >
+              🌍 $ USD (Global)
+            </button>
+          </div>
         </div>
 
         {/* Content Body */}
@@ -162,11 +208,11 @@ export const ProMonetizationModal: React.FC<ProMonetizationModalProps> = ({
                       Seeker
                     </div>
                     <div className="text-2xl font-extrabold text-stone-900 dark:text-stone-100 mb-1">
-                      ${getTierPrice('seeker')}
-                      <span className="text-xs font-normal text-stone-500"> / month</span>
+                      {getTierPrice('seeker')}
+                      <span className="text-xs font-normal text-stone-500"> {TIER_PRICING[currency].seeker.period}</span>
                     </div>
                     <p className="text-xs text-stone-500 mb-4">
-                      For casual spiritual exploration and daily verse inspiration.
+                      For daily spiritual immersion and contemplation.
                     </p>
                     <ul className="text-xs space-y-2 text-stone-700 dark:text-stone-300">
                       <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-amber-500 shrink-0" /> Full Sanskrit Anvaya</li>
@@ -194,11 +240,11 @@ export const ProMonetizationModal: React.FC<ProMonetizationModalProps> = ({
                       Sadhak Annual
                     </div>
                     <div className="text-2xl font-extrabold text-stone-900 dark:text-stone-100 mb-1">
-                      ${getTierPrice('sadhak')}
-                      <span className="text-xs font-normal text-stone-500"> / year</span>
+                      {getTierPrice('sadhak')}
+                      <span className="text-xs font-normal text-stone-500"> {TIER_PRICING[currency].sadhak.period}</span>
                     </div>
                     <p className="text-xs text-stone-500 mb-4">
-                      Complete immersion for dedicated seekers of truth.
+                      Complete deep study for dedicated seekers of truth.
                     </p>
                     <ul className="text-xs space-y-2 text-stone-700 dark:text-stone-300">
                       <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-amber-500 shrink-0" /> Unlimited AI Counsel</li>
@@ -224,11 +270,11 @@ export const ProMonetizationModal: React.FC<ProMonetizationModalProps> = ({
                       Lifetime Patron
                     </div>
                     <div className="text-2xl font-extrabold text-stone-900 dark:text-stone-100 mb-1">
-                      ${getTierPrice('patron')}
+                      {getTierPrice('patron')}
                       <span className="text-xs font-normal text-stone-500"> one-time</span>
                     </div>
                     <p className="text-xs text-stone-500 mb-4">
-                      Forever patron access to all future Vedic scriptures.
+                      Forever patron access to all future Vedic scripture releases.
                     </p>
                     <ul className="text-xs space-y-2 text-stone-700 dark:text-stone-300">
                       <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-amber-500 shrink-0" /> Everything in Sadhak</li>
@@ -286,28 +332,40 @@ export const ProMonetizationModal: React.FC<ProMonetizationModalProps> = ({
               {/* Primary Action Button */}
               <div className="space-y-3">
                 <button
-                  onClick={handleCheckout}
+                  onClick={handlePayment}
                   disabled={isProcessing}
                   className="w-full py-4 rounded-2xl font-bold text-sm uppercase tracking-wider bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg shadow-amber-500/25 active:scale-98 flex items-center justify-center gap-2"
                 >
-                  <Crown className="w-4 h-4" />
+                  {currency === 'INR' ? <QrCode className="w-4 h-4" /> : <CreditCard className="w-4 h-4" />}
                   <span>
-                    {isProcessing ? 'Activating Sacred Patronage...' : `Join as ${selectedTier.toUpperCase()} Patron · $${getTierPrice(selectedTier)}`}
+                    {isProcessing 
+                      ? 'Opening Secure Payment...' 
+                      : currency === 'INR'
+                        ? `Pay ${getTierPrice(selectedTier)} via UPI / Cards`
+                        : `Pay ${getTierPrice(selectedTier)} via International Cards`}
                   </span>
                 </button>
-                <div className="flex items-center justify-center gap-4 text-[11px] text-stone-400 text-center">
+
+                {/* Accepted Payment Logos */}
+                <div className="flex items-center justify-center gap-3 text-[11px] text-stone-400 text-center flex-wrap">
                   <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> 14-Day Money Back Guarantee</span>
                   <span>•</span>
-                  <span>Zero Ads Ever</span>
+                  <span>100% Encrypted & Safe</span>
                   <span>•</span>
-                  <span>Cancel Anytime</span>
+                  {currency === 'INR' ? (
+                    <span className="text-amber-700 dark:text-amber-300 font-medium">
+                      Google Pay · PhonePe · Paytm · UPI QR · Debit/Credit Cards
+                    </span>
+                  ) : (
+                    <span>Apple Pay · Google Pay · Visa/MC · Amex</span>
+                  )}
                 </div>
               </div>
 
               {/* Existing License Key Activation */}
               <div className="pt-4 border-t text-center space-y-2" style={{ borderColor: 'var(--border-parchment)' }}>
                 <div className="text-xs text-stone-500">
-                  Already have a Patron License Key or gifted coupon?
+                  Already have a Patron License Key or gifted receipt?
                 </div>
                 <div className="flex items-center justify-center gap-2 max-w-sm mx-auto">
                   <input 

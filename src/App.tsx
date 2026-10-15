@@ -20,6 +20,7 @@ import {
   saveFontSize 
 } from './services/storage';
 import { soundscape } from './services/ambientAudio';
+import { checkStripeReturnCallback } from './services/stripe';
 
 import { Navbar } from './components/Navbar';
 import { HeroBanner } from './components/HeroBanner';
@@ -67,6 +68,20 @@ export function App() {
     document.documentElement.classList.add(`theme-${theme}`);
     saveTheme(theme);
   }, [theme]);
+
+  // Check for returning Stripe customer after successful checkout
+  useEffect(() => {
+    const stripeReturn = checkStripeReturnCallback();
+    if (stripeReturn && stripeReturn.isSuccess) {
+      handleUpgradeSuccess(stripeReturn.tier);
+      confetti({
+        particleCount: 150,
+        spread: 90,
+        origin: { y: 0.5 },
+        colors: ['#D97706', '#F59E0B', '#EA580C', '#10B981']
+      });
+    }
+  }, []);
 
   // Handle Font Style
   const handleSelectFontStyle = (style: FontStyle) => {
