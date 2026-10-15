@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-main: #FDFBF7;
+    --paper-surface: #F9F6EE;
+    --paper-card: #FFFFFF;
+    --border-parchment: #E8E2D2;
+    --text-primary: #1C1917;
+    --text-secondary: #57534E;
+    --text-muted: #857F77;
+    --accent-gold: #D97706;
+    --accent-amber: #F59E0B;
+    --accent-crimson: #991B1B;
+    --card-shadow: 0 4px 20px -2px rgba(28, 25, 23, 0.05), 0 2px 6px -1px rgba(28, 25, 23, 0.03);
+  }
+
+  /* Theme: Kurukshetra Twilight (Night Reading - Bedside Lamp Atmosphere) */
+  .theme-twilight {
+    --bg-main: #0E0D0C;
+    --paper-surface: #181614;
+    --paper-card: #201D1A;
+    --border-parchment: #302B26;
+    --text-primary: #F5EBE1;
+    --text-secondary: #C4B9AD;
+    --text-muted: #7E7469;
+    --accent-gold: #F59E0B;
+    --accent-amber: #FBBF24;
+    --accent-crimson: #DC2626;
+    --card-shadow: 0 4px 25px -2px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Theme: Brahmamuhurta Dawn (Sacred Sunrise Saffron) */
+  .theme-dawn {
+    --bg-main: #FFF8F0;
+    --paper-surface: #FDE8D3;
+    --paper-card: #FFFBF7;
+    --border-parchment: #F3CCA6;
+    --text-primary: #2B1810;
+    --text-secondary: #694432;
+    --text-muted: #9E745E;
+    --accent-gold: #D97706;
+    --accent-amber: #EA580C;
+    --accent-crimson: #9A3412;
+    --card-shadow: 0 4px 20px -2px rgba(154, 52, 18, 0.08);
+  }
+
+  /* Theme: Vaikuntha Jade (Tranquil Hermitage) */
+  .theme-jade {
+    --bg-main: #F4F7F4;
+    --paper-surface: #E8EFE8;
+    --paper-card: #FAFDF9;
+    --border-parchment: #D1DFD2;
+    --text-primary: #122114;
+    --text-secondary: #35533A;
+    --text-muted: #648269;
+    --accent-gold: #059669;
+    --accent-amber: #10B981;
+    --accent-crimson: #047857;
+    --card-shadow: 0 4px 20px -2px rgba(5, 150, 105, 0.06);
+  }
+
+  /* Theme: Vishvarupa Cosmic (Starlight Nebula) */
+  .theme-cosmic {
+    --bg-main: #080A12;
+    --paper-surface: #101426;
+    --paper-card: #161B33;
+    --border-parchment: #252D54;
+    --text-primary: #F1F4FD;
+    --text-secondary: #A5B4FC;
+    --text-muted: #6366F1;
+    --accent-gold: #FACC15;
+    --accent-amber: #EAB308;
+    --accent-crimson: #818CF8;
+    --card-shadow: 0 4px 30px -2px rgba(99, 102, 241, 0.2);
+  }
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Subtle sacred Bhojpatra / parchment texture overlay */
+.bg-parchment-grain {
+  background-image: radial-gradient(rgba(217, 119, 6, 0.04) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Custom smooth scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-parchment);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-amber);
+}
+
+/* Custom animation utility */
+.glow-amber {
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.25);
+}
+
+.glow-subtle {
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+}
